@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Building, Map, X } from 'lucide-react';
-import { mockDestinations } from '@/data/destinations';
-import { mockPlaces } from '@/data/places';
-import { mockAccommodations } from '@/data/accommodations';
+import { searchDestinations, searchPlaces, searchAccommodations } from '@/services/apiService';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -12,14 +11,23 @@ interface SearchModalProps {
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 300);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  const [destResults, setDestResults] = useState<any[]>([]);
+  const [placeResults, setPlaceResults] = useState<any[]>([]);
+  const [accResults, setAccResults] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       setQuery('');
+      setDestResults([]);
+      setPlaceResults([]);
+      setAccResults([]);
     }
   }, [isOpen]);
 
@@ -31,6 +39,29 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  useEffect(() => {
+    const fetchResults = async () => {
+      setIsLoading(true);
+      try {
+        const [dests, places, accs] = await Promise.all([
+          searchDestinations(debouncedQuery),
+          debouncedQuery ? searchPlaces(debouncedQuery) : Promise.resolve({ results: [] }),
+          debouncedQuery ? searchAccommodations({ q: debouncedQuery }) : Promise.resolve({ results: [] })
+        ]);
+        setDestResults(dests.results || []);
+        setPlaceResults(places.results || []);
+        setAccResults(accs.results || []);
+      } catch (err) {
+        console.error('Search failed', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (isOpen) {
+      fetchResults();
+    }
+  }, [debouncedQuery, isOpen]);
+
   if (!isOpen) return null;
 
   const handleSelectDestination = (slug: string) => {
@@ -38,27 +69,10 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     onClose();
   };
 
-  const handleSelectPlaceOrAcc = (destinationId: string) => {
-    const dest = mockDestinations.find(d => d.id === destinationId);
-    if (dest) {
-      navigate(`/destinations/${dest.slug}`);
-      onClose();
-    }
+  const handleSelectPlaceOrAcc = (destinationSlug: string) => {
+    navigate(`/destinations/${destinationSlug}`);
+    onClose();
   };
-
-  const lowerQuery = query.toLowerCase();
-
-  const destResults = query 
-    ? mockDestinations.filter(d => d.name.toLowerCase().includes(lowerQuery) || d.state.toLowerCase().includes(lowerQuery))
-    : mockDestinations.slice(0, 4); // Popular destinations when empty
-
-  const placeResults = query
-    ? mockPlaces.filter(p => p.name.toLowerCase().includes(lowerQuery) || p.category.toLowerCase().includes(lowerQuery))
-    : [];
-
-  const accResults = query
-    ? mockAccommodations.filter(a => a.name.toLowerCase().includes(lowerQuery))
-    : [];
 
   const hasResults = destResults.length > 0 || placeResults.length > 0 || accResults.length > 0;
 
@@ -80,8 +94,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             onKeyDown={e => {
               if (e.key === 'Enter' && hasResults) {
                 if (destResults.length > 0) handleSelectDestination(destResults[0].slug);
-                else if (placeResults.length > 0) handleSelectPlaceOrAcc(placeResults[0].destinationId);
-                else if (accResults.length > 0) handleSelectPlaceOrAcc(accResults[0].destinationId);
+                else if (placeResults.length > 0) handleSelectPlaceOrAcc(placeResults[0].destination_slug);
+                else if (accResults.length > 0) handleSelectPlaceOrAcc(accResults[0].destination_slug);
               }
             }}
           />
@@ -118,17 +132,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <div className="mb-4">
               <div className="px-3 py-2 text-xs font-bold text-primary uppercase tracking-wider">Places & Activities</div>
               {placeResults.map(place => {
-                const dest = mockDestinations.find(d => d.id === place.destinationId);
                 return (
                   <button
                     key={place.id}
                     className="w-full flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors text-left"
-                    onClick={() => handleSelectPlaceOrAcc(place.destinationId)}
+                    onClick={() => handleSelectPlaceOrAcc(place.destination_slug)}
                   >
                     <MapPin className="w-5 h-5 text-red-500 mr-4 shrink-0" />
                     <div>
                       <div className="font-semibold text-charcoal dark:text-white">{place.name}</div>
-                      <div className="text-xs text-muted">{dest?.name} • {place.category}</div>
+                      <div className="text-xs text-muted">{place.destination} • {place.category}</div>
                     </div>
                   </button>
                 );
@@ -140,17 +153,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <div className="mb-4">
               <div className="px-3 py-2 text-xs font-bold text-primary uppercase tracking-wider">Accommodations</div>
               {accResults.map(acc => {
-                const dest = mockDestinations.find(d => d.id === acc.destinationId);
                 return (
                   <button
                     key={acc.id}
                     className="w-full flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-colors text-left"
-                    onClick={() => handleSelectPlaceOrAcc(acc.destinationId)}
+                    onClick={() => handleSelectPlaceOrAcc(acc.destination_slug)}
                   >
                     <Building className="w-5 h-5 text-purple-500 mr-4 shrink-0" />
                     <div>
                       <div className="font-semibold text-charcoal dark:text-white">{acc.name}</div>
-                      <div className="text-xs text-muted">{dest?.name} • {acc.type}</div>
+                      <div className="text-xs text-muted">{acc.destination} • {acc.hotel_type}</div>
                     </div>
                   </button>
                 );

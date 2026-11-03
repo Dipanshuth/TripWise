@@ -1,0 +1,12 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Home - {{ project_name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Welcome to {{ project_name }} Backend</h1>
+    <p><strong>Description:</strong> {{ description }}</p>
+    <p><strong>Status:</strong> Running successfully in {{ phase }}.</p>
+    <p>This page demonstrates the Django request-response cycle and template inheritance.</p>
+</div>
+{% endblock %}

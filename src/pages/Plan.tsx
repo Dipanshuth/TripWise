@@ -12,6 +12,9 @@ import { mockRoutes } from '@/data/transport';
 import { mockAccommodations } from '@/data/accommodations';
 import { regenerateItinerary } from '@/utils/itineraryHelper';
 import { budgetService } from '@/services/budgetService';
+import { searchDestinations, getDestinations } from '@/services/apiService';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useEffect } from 'react';
 
 export function Plan() {
   const navigate = useNavigate();
@@ -34,13 +37,45 @@ export function Plan() {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
+  const [filteredDestinations, setFilteredDestinations] = useState<any[]>([]);
+  const [defaultDestinations, setDefaultDestinations] = useState<any[]>([]);
+  const [selectedDestinationObj, setSelectedDestinationObj] = useState<any>(null);
+  
+  const debouncedTo = useDebounce(formData.to, 300);
+
+  useEffect(() => {
+    // Load default destinations once
+    getDestinations().then(res => {
+      setDefaultDestinations(res.results || []);
+    }).catch(err => console.error(err));
+  }, []);
+
+  useEffect(() => {
+    if (!debouncedTo) {
+      setFilteredDestinations(defaultDestinations);
+      return;
+    }
+    
+    // Only search if user typed something and we aren't currently selecting from the list directly
+    searchDestinations(debouncedTo)
+      .then(res => setFilteredDestinations(res.results || []))
+      .catch(err => console.error(err));
+  }, [debouncedTo, defaultDestinations]);
+
   const nextStep = () => {
     if (step === 1 && !formData.from) {
       toast('Please enter your starting location.', 'error');
       return;
     }
     if (step === 2) {
-      const dest = mockDestinations.find(d => d.id === formData.destinationId) || mockDestinations.find(d => d.name.toLowerCase() === formData.to.toLowerCase());
+      let dest = selectedDestinationObj;
+      if (!dest) {
+        dest = filteredDestinations.find(d => d.id === formData.destinationId) || filteredDestinations.find(d => d.name.toLowerCase() === formData.to.toLowerCase());
+      }
+      if (!dest) {
+        dest = mockDestinations.find(d => d.name.toLowerCase() === formData.to.toLowerCase());
+      }
+      
       if (!dest) {
         toast('Please select a valid destination from the suggestions.', 'error');
         return;
@@ -49,46 +84,52 @@ export function Plan() {
         updateForm('destinationId', dest.id);
         updateForm('to', dest.name); // Normalize casing
       }
+      setSelectedDestinationObj(dest);
     }
     setStep(s => Math.min(s + 1, 6));
   };
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
-  const filteredDestinations = useMemo(() => {
-    if (!formData.to) return mockDestinations;
-    return mockDestinations.filter(d => 
-      d.name.toLowerCase().includes(formData.to.toLowerCase()) || 
-      d.state.toLowerCase().includes(formData.to.toLowerCase())
-    );
-  }, [formData.to]);
-
   const selectedDestination = useMemo(() => {
+    if (selectedDestinationObj) return selectedDestinationObj;
     if (formData.destinationId) {
-      return mockDestinations.find(d => d.id === formData.destinationId);
+      return defaultDestinations.find(d => d.id === formData.destinationId) || filteredDestinations.find(d => d.id === formData.destinationId);
     }
-    return mockDestinations.find(d => d.name.toLowerCase() === formData.to.toLowerCase());
-  }, [formData.to, formData.destinationId]);
+    return null;
+  }, [selectedDestinationObj, formData.destinationId, defaultDestinations, filteredDestinations]);
 
   const minimumBudget = useMemo(() => {
     if (!selectedDestination) return 0;
     return budgetService.calculateMinimumBudget({
+      id: 'temp',
+      status: 'Draft',
       source: formData.from,
       destinationId: selectedDestination.id,
       days: formData.days,
-      travellers: formData.travellers
-    });
+      travellers: formData.travellers,
+      travelStyle: 'Balanced',
+      budget: 0,
+      places: [],
+      expenses: [],
+      itinerary: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    } as Trip, selectedDestination);
   }, [selectedDestination, formData.from, formData.days, formData.travellers]);
 
   const handleBuildTrip = () => {
     const dest = selectedDestination;
     if (!dest) return;
 
+    const destIdStr = String(dest.id);
+    const mockDestId = destIdStr.startsWith('d') ? destIdStr : `d${destIdStr}`;
+
     // Find default transport
-    const route = mockRoutes.find(r => r.origin.toLowerCase() === formData.from.toLowerCase() && r.destinationId === dest.id);
+    const route = mockRoutes.find(r => (r.origin || '').toLowerCase() === (formData.from || '').toLowerCase() && (String(r.destinationId) === destIdStr || String(r.destinationId) === mockDestId));
     const defaultTransportId = route ? route.options[0]?.id : undefined;
 
     // Find default accommodation based on style
-    const destAccs = mockAccommodations.filter(a => a.destinationId === dest.id);
+    const destAccs = mockAccommodations.filter(a => String(a.destinationId) === destIdStr || String(a.destinationId) === mockDestId);
     const targetType = formData.style === 'Premium' ? 'Resort' : formData.style === 'Budget' ? 'Hostel' : 'Hotel';
     const defaultAccId = destAccs.find(a => a.type === targetType)?.id || destAccs[0]?.id;
 
@@ -202,6 +243,7 @@ export function Plan() {
                             e.preventDefault(); // Prevents input blur before click registers
                             updateForm('to', dest.name);
                             updateForm('destinationId', dest.id);
+                            setSelectedDestinationObj(dest);
                             setDestSearchFocus(false);
                           }}
                         >
@@ -211,7 +253,7 @@ export function Plan() {
                               <span className="ml-2 text-green-500 text-sm">✓</span>
                             )}
                           </span>
-                          <span className="text-xs text-muted">{dest.state}</span>
+                          <span className="text-xs text-muted">{dest.state || 'India'}</span>
                         </button>
                       ))}
                     </div>
@@ -223,7 +265,7 @@ export function Plan() {
             </div>
             {selectedDestination && (
               <div className="mt-8 flex gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl items-center animate-in fade-in">
-                <img src={selectedDestination.image} className="w-16 h-16 rounded-lg object-cover shrink-0 shadow-sm" />
+                <img src={selectedDestination.image_url || selectedDestination.image} className="w-16 h-16 rounded-lg object-cover shrink-0 shadow-sm" />
                 <div>
                   <p className="font-bold text-charcoal dark:text-white flex items-center">
                     {selectedDestination.name}

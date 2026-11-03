@@ -14,9 +14,10 @@ export const storageService = {
     localStorage.setItem(TRIPS_KEY, JSON.stringify(trips));
   },
 
-  getTrip: (id: string): Trip | undefined => {
+  getTrip: (id: string | number): Trip | undefined => {
+    const strId = String(id);
     const trips = storageService.getTrips();
-    return trips.find(t => t.id === id);
+    return trips.find(t => String(t.id) === strId);
   },
 
   createTrip: (trip: Trip): void => {
@@ -25,9 +26,10 @@ export const storageService = {
     storageService.saveTrips(trips);
   },
 
-  updateTrip: (id: string, updates: Partial<Trip>): Trip | undefined => {
+  updateTrip: (id: string | number, updates: Partial<Trip>): Trip | undefined => {
+    const strId = String(id);
     const trips = storageService.getTrips();
-    const index = trips.findIndex(t => t.id === id);
+    const index = trips.findIndex(t => String(t.id) === strId);
     if (index !== -1) {
       trips[index] = { ...trips[index], ...updates, updatedAt: Date.now() };
       storageService.saveTrips(trips);
@@ -36,9 +38,10 @@ export const storageService = {
     return undefined;
   },
 
-  deleteTrip: (id: string): void => {
+  deleteTrip: (id: string | number): void => {
+    const strId = String(id);
     let trips = storageService.getTrips();
-    trips = trips.filter(t => t.id !== id);
+    trips = trips.filter(t => String(t.id) !== strId);
     storageService.saveTrips(trips);
   },
 

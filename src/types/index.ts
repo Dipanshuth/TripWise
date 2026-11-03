@@ -27,6 +27,16 @@ export interface Place {
   category: string;
   recommendedTimeHours: number;
   entryFee: number;
+  entry_fee?: number;
+  entry_fee_raw?: string;
+  entry_fee_type?: string;
+  ticket_group?: string;
+  local_transport_mode?: string;
+  local_transport_cost?: number;
+  local_transport_type?: string;
+  transport_estimate_raw?: string;
+  typical_transport_budget_pp_raw?: string;
+  travel_time?: string;
   distance: string;
   image: string;
   description?: string;
@@ -47,11 +57,16 @@ export interface Accommodation {
 export interface TransportOption {
   id: string;
   mode: string;
-  price: number;
-  pricingType: 'per_person' | 'fixed';
+  min_price?: number;
+  typical_price?: number;
+  max_price?: number;
+  price?: number;
+  pricing_type?: 'per_person' | 'per_vehicle' | 'fixed';
+  pricingType?: 'per_person' | 'per_vehicle' | 'fixed';
+  distance_km?: string;
   duration: string;
-  comfort: string;
-  recommended: boolean;
+  comfort?: string;
+  recommended?: boolean;
 }
 
 export interface RouteTransport {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, SlidersHorizontal, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
@@ -9,20 +9,54 @@ import { Reveal } from '@/components/ui/Reveal';
 import { useTrips } from '@/context/TripContext';
 import { useToast } from '@/context/ToastContext';
 
+import { getDestinations } from '@/services/apiService';
+
 const categories = ['All', 'Mountains', 'Beaches', 'Heritage', 'Adventure', 'Nature', 'Relaxation', 'Food'];
 
 export function Explore() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [destinations, setDestinations] = useState(mockDestinations);
+  const [isLoading, setIsLoading] = useState(false);
   
   const { savedPlaces, toggleSavedPlace } = useTrips();
   const { toast } = useToast();
 
-  const filteredDestinations = mockDestinations.filter(dest => {
+  useEffect(() => {
+    const fetchDests = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getDestinations();
+        if (data.results && data.results.length > 0) {
+            // Map backend fields to frontend interface where necessary to avoid breaking UI
+            const formattedDests = data.results.map((d: any) => ({
+                ...d,
+                id: String(d.id),
+                image: d.image_url,
+                state: d.state || 'India',
+                country: 'India',
+                rating: 4.5,
+                dailyBudget: d.daily_budget_typical || d.dailyBudget || 2000,
+                categories: (d.popular_for && d.popular_for.length > 0) ? d.popular_for : (d.categories || ['Nature'])
+            }));
+            // Merge or replace as necessary, using mock data for missing fields if backend is simple right now
+            // But for Phase 3, we use backend data primarily, defaulting to mock for display stability if needed.
+            setDestinations(formattedDests);
+        }
+      } catch (err) {
+        console.error("Using fallback mock destinations.", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDests();
+  }, []);
+
+  const filteredDestinations = destinations.filter(dest => {
     const matchesSearch = dest.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          dest.state.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = activeCategory === 'All' || dest.categories.includes(activeCategory);
+                          (dest.state && dest.state.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory = activeCategory === 'All' || (dest.categories && dest.categories.includes(activeCategory));
     return matchesSearch && matchesCategory;
   });
 

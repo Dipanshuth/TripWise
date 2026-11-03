@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
+import { BackendStatus } from './BackendStatus';
 
 export function Layout() {
   return (
@@ -12,6 +13,7 @@ export function Layout() {
       <footer className="bg-primary text-white py-12">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-white/60">© 2024 TripWise. All rights reserved.</p>
+          <BackendStatus />
         </div>
       </footer>
     </div>

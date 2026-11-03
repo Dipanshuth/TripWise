@@ -8,16 +8,16 @@ interface TripContextType {
   trips: Trip[];
   savedPlaces: string[];
   createTrip: (trip: Trip) => void;
-  updateTrip: (id: string, updates: Partial<Trip>) => void;
-  deleteTrip: (id: string) => void;
-  duplicateTrip: (id: string) => void;
-  toggleSavedPlace: (placeId: string) => void;
-  addPlaceToTrip: (tripId: string, placeId: string) => void;
-  removePlaceFromTrip: (tripId: string, placeId: string) => void;
-  applyDiscount: (tripId: string, discount: Discount) => void;
-  removeDiscount: (tripId: string) => void;
-  addExpense: (tripId: string, expense: Expense) => void;
-  removeExpense: (tripId: string, expenseId: string) => void;
+  updateTrip: (id: string | number, updates: Partial<Trip>, contextPlaces?: any[]) => void;
+  deleteTrip: (id: string | number) => void;
+  duplicateTrip: (id: string | number) => void;
+  toggleSavedPlace: (placeId: string | number) => void;
+  addPlaceToTrip: (tripId: string | number, placeId: string | number, contextPlaces?: any[]) => void;
+  removePlaceFromTrip: (tripId: string | number, placeId: string | number, contextPlaces?: any[]) => void;
+  applyDiscount: (tripId: string | number, discount: Discount) => void;
+  removeDiscount: (tripId: string | number) => void;
+  addExpense: (tripId: string | number, expense: Expense) => void;
+  removeExpense: (tripId: string | number, expenseId: string) => void;
 }
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
@@ -52,26 +52,28 @@ export function TripProvider({ children }: { children: ReactNode }) {
     setTrips(storageService.getTrips());
   };
 
-  const updateTrip = (id: string, updates: Partial<Trip>) => {
+  const updateTrip = (id: string | number, updates: Partial<Trip>, contextPlaces?: any[]) => {
+    const strId = String(id);
     let finalUpdates = { ...updates };
-    const existingTrip = trips.find(t => t.id === id);
+    const existingTrip = trips.find(t => String(t.id) === strId);
     
     if (existingTrip && (updates.places !== undefined || updates.days !== undefined)) {
       const draftTrip = { ...existingTrip, ...updates };
-      finalUpdates.itinerary = regenerateItinerary(draftTrip);
+      finalUpdates.itinerary = regenerateItinerary(draftTrip, contextPlaces);
     }
     
-    storageService.updateTrip(id, finalUpdates);
+    storageService.updateTrip(strId, finalUpdates);
     setTrips(storageService.getTrips());
   };
 
-  const deleteTrip = (id: string) => {
-    storageService.deleteTrip(id);
+  const deleteTrip = (id: string | number) => {
+    storageService.deleteTrip(String(id));
     setTrips(storageService.getTrips());
   };
 
-  const duplicateTrip = (id: string) => {
-    const tripToDuplicate = trips.find(t => t.id === id);
+  const duplicateTrip = (id: string | number) => {
+    const strId = String(id);
+    const tripToDuplicate = trips.find(t => String(t.id) === strId);
     if (tripToDuplicate) {
       const newTrip: Trip = {
         ...tripToDuplicate,
@@ -84,53 +86,55 @@ export function TripProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const toggleSavedPlace = (placeId: string) => {
-    if (savedPlaces.includes(placeId)) {
-      storageService.removeSavedPlace(placeId);
+  const toggleSavedPlace = (placeId: string | number) => {
+    const strPlaceId = String(placeId);
+    if (savedPlaces.includes(strPlaceId)) {
+      storageService.removeSavedPlace(strPlaceId);
     } else {
-      storageService.savePlace(placeId);
+      storageService.savePlace(strPlaceId);
     }
     setSavedPlaces(storageService.getSavedPlaces());
   };
 
-  const addPlaceToTrip = (tripId: string, placeId: string) => {
-    const trip = trips.find(t => t.id === tripId);
-    if (trip && !trip.places.includes(placeId)) {
-      const place = mockPlaces.find(p => p.id === placeId);
-      if (place && place.destinationId === trip.destinationId) {
-        updateTrip(tripId, { places: [...trip.places, placeId] });
-      } else {
-        console.error("Place destination does not match trip destination.");
-      }
+  const addPlaceToTrip = (tripId: string | number, placeId: string | number, contextPlaces?: any[]) => {
+    const strTripId = String(tripId);
+    const strPlaceId = String(placeId);
+    const trip = trips.find(t => String(t.id) === strTripId);
+    if (trip && !trip.places.map(String).includes(strPlaceId)) {
+      updateTrip(strTripId, { places: [...trip.places, strPlaceId] }, contextPlaces);
     }
   };
 
-  const removePlaceFromTrip = (tripId: string, placeId: string) => {
-    const trip = trips.find(t => t.id === tripId);
+  const removePlaceFromTrip = (tripId: string | number, placeId: string | number, contextPlaces?: any[]) => {
+    const strTripId = String(tripId);
+    const strPlaceId = String(placeId);
+    const trip = trips.find(t => String(t.id) === strTripId);
     if (trip) {
-      updateTrip(tripId, { places: trip.places.filter(id => id !== placeId) });
+      updateTrip(strTripId, { places: trip.places.filter(id => String(id) !== strPlaceId) }, contextPlaces);
     }
   };
 
-  const applyDiscount = (tripId: string, discount: Discount) => {
-    updateTrip(tripId, { discount });
+  const applyDiscount = (tripId: string | number, discount: Discount) => {
+    updateTrip(String(tripId), { discount });
   };
 
-  const removeDiscount = (tripId: string) => {
-    updateTrip(tripId, { discount: undefined });
+  const removeDiscount = (tripId: string | number) => {
+    updateTrip(String(tripId), { discount: undefined });
   };
 
-  const addExpense = (tripId: string, expense: Expense) => {
-    const trip = trips.find(t => t.id === tripId);
+  const addExpense = (tripId: string | number, expense: Expense) => {
+    const strTripId = String(tripId);
+    const trip = trips.find(t => String(t.id) === strTripId);
     if (trip) {
-      updateTrip(tripId, { expenses: [...trip.expenses, expense] });
+      updateTrip(strTripId, { expenses: [...(trip.expenses || []), expense] });
     }
   };
 
-  const removeExpense = (tripId: string, expenseId: string) => {
-    const trip = trips.find(t => t.id === tripId);
+  const removeExpense = (tripId: string | number, expenseId: string) => {
+    const strTripId = String(tripId);
+    const trip = trips.find(t => String(t.id) === strTripId);
     if (trip) {
-      updateTrip(tripId, { expenses: trip.expenses.filter(e => e.id !== expenseId) });
+      updateTrip(strTripId, { expenses: (trip.expenses || []).filter(e => e.id !== expenseId) });
     }
   };
 

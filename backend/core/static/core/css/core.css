@@ -1,0 +1,28 @@
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8fafc;
+    color: #334155;
+}
+header {
+    background-color: #0f172a;
+    color: white;
+    padding: 1rem 2rem;
+}
+header nav a {
+    color: white;
+    margin-right: 1rem;
+    text-decoration: none;
+}
+.container {
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+.card {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}

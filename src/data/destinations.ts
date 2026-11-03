@@ -10,12 +10,12 @@ export const mockDestinations: Destination[] = [
     "rating": 4.8,
     "reviews": 1240,
     "recommendedDays": 4,
-    "dailyBudget": 2500,
+    "dailyBudget": 3700,
     "minimumBudget": 7000,
     "localTravelCost": 500,
     "image": "https://upload.wikimedia.org/wikipedia/commons/3/34/Beas_Valley_-_Palchan_-_Kullu_2014-05-10_2275.JPG?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "Perfect for nature, mountains and slow travel. Known as the Valley of Gods.",
-    "bestSeason": "March to June",
+    "bestSeason": "March - June",
     "difficulty": "Easy",
     "categories": [
       "Mountains",
@@ -31,18 +31,18 @@ export const mockDestinations: Destination[] = [
     "country": "India",
     "rating": 4.7,
     "reviews": 3100,
-    "recommendedDays": 5,
-    "dailyBudget": 3500,
+    "recommendedDays": 4,
+    "dailyBudget": 2500,
     "minimumBudget": 8000,
     "localTravelCost": 600,
     "image": "https://upload.wikimedia.org/wikipedia/commons/0/03/Manali_City.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "High-altitude Himalayan resort town, famous for backpacking and honeymooning.",
-    "bestSeason": "October to February",
+    "bestSeason": "March - June",
     "difficulty": "Easy",
     "categories": [
       "Mountains",
       "Adventure",
-      "Nature"
+      "Snow"
     ]
   },
   {
@@ -54,17 +54,17 @@ export const mockDestinations: Destination[] = [
     "rating": 4.9,
     "reviews": 8500,
     "recommendedDays": 5,
-    "dailyBudget": 4000,
+    "dailyBudget": 3500,
     "minimumBudget": 12000,
     "localTravelCost": 800,
     "image": "https://upload.wikimedia.org/wikipedia/commons/f/fc/BeachFun.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "Famous for its pristine beaches, vibrant nightlife, and Portuguese heritage.",
-    "bestSeason": "November to February",
+    "bestSeason": "November - February",
     "difficulty": "Easy",
     "categories": [
       "Beaches",
-      "Relaxation",
-      "Heritage"
+      "Nightlife",
+      "Water Sports"
     ]
   },
   {
@@ -81,12 +81,12 @@ export const mockDestinations: Destination[] = [
     "localTravelCost": 500,
     "image": "https://upload.wikimedia.org/wikipedia/commons/4/41/East_facade_Hawa_Mahal_Jaipur_from_ground_level_%28July_2022%29_-_img_01.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "The Pink City, known for its royal palaces, forts, and vibrant markets.",
-    "bestSeason": "October to March",
+    "bestSeason": "October - March",
     "difficulty": "Easy",
     "categories": [
       "Heritage",
-      "Food",
-      "Culture"
+      "Culture",
+      "Shopping"
     ]
   },
   {
@@ -98,17 +98,17 @@ export const mockDestinations: Destination[] = [
     "rating": 4.6,
     "reviews": 12000,
     "recommendedDays": 2,
-    "dailyBudget": 2000,
+    "dailyBudget": 3000,
     "minimumBudget": 5000,
     "localTravelCost": 400,
     "image": "https://upload.wikimedia.org/wikipedia/commons/6/68/Taj_Mahal%2C_Agra%2C_India.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "Home to the iconic Taj Mahal, a masterpiece of Mughal architecture.",
-    "bestSeason": "October to March",
+    "bestSeason": "October - March",
     "difficulty": "Easy",
     "categories": [
       "Heritage",
-      "Culture",
-      "Architecture"
+      "Architecture",
+      "History"
     ]
   },
   {
@@ -120,12 +120,12 @@ export const mockDestinations: Destination[] = [
     "rating": 4.7,
     "reviews": 8000,
     "recommendedDays": 3,
-    "dailyBudget": 1500,
+    "dailyBudget": 2000,
     "minimumBudget": 4500,
     "localTravelCost": 300,
     "image": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Varanasi%2C_India%2C_Ghats%2C_Cremation_ceremony_in_progress.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "Spiritual capital of India, known for its ghats on the Ganges river.",
-    "bestSeason": "October to March",
+    "bestSeason": "October - March",
     "difficulty": "Easy",
     "categories": [
       "Spiritual",
@@ -142,17 +142,17 @@ export const mockDestinations: Destination[] = [
     "rating": 4.8,
     "reviews": 6500,
     "recommendedDays": 4,
-    "dailyBudget": 2800,
+    "dailyBudget": 2500,
     "minimumBudget": 8500,
     "localTravelCost": 600,
     "image": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Munnar_Overview.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "Famous for its tea estates, exotic lush greenery and craggy peaks.",
-    "bestSeason": "September to March",
+    "bestSeason": "September - May",
     "difficulty": "Easy",
     "categories": [
       "Nature",
-      "Mountains",
-      "Relaxation"
+      "Tea",
+      "Mountains"
     ]
   },
   {
@@ -164,17 +164,17 @@ export const mockDestinations: Destination[] = [
     "rating": 4.9,
     "reviews": 7200,
     "recommendedDays": 3,
-    "dailyBudget": 3500,
+    "dailyBudget": 3000,
     "minimumBudget": 9000,
     "localTravelCost": 550,
     "image": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Evening_view%2C_City_Palace%2C_Udaipur.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "The City of Lakes, known for its lavish royal residences.",
-    "bestSeason": "September to March",
+    "bestSeason": "October - March",
     "difficulty": "Easy",
     "categories": [
+      "Lakes",
       "Heritage",
-      "Romantic",
-      "Culture"
+      "Romance"
     ]
   },
   {
@@ -186,16 +186,16 @@ export const mockDestinations: Destination[] = [
     "rating": 4.8,
     "reviews": 5500,
     "recommendedDays": 4,
-    "dailyBudget": 2200,
+    "dailyBudget": 2000,
     "minimumBudget": 6000,
     "localTravelCost": 400,
     "image": "https://upload.wikimedia.org/wikipedia/commons/7/74/Trayambakeshwar_Temple_VK.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "Yoga capital of the world and gateway to the Garhwal Himalayas.",
-    "bestSeason": "September to June",
+    "bestSeason": "September - November",
     "difficulty": "Moderate",
     "categories": [
-      "Spiritual",
       "Adventure",
+      "Yoga",
       "Nature"
     ]
   },
@@ -213,12 +213,12 @@ export const mockDestinations: Destination[] = [
     "localTravelCost": 450,
     "image": "https://upload.wikimedia.org/wikipedia/commons/9/96/DarjeelingTrainFruitshop_%282%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "Known for tea industry and the spectacular views of Kangchenjunga.",
-    "bestSeason": "April to June",
+    "bestSeason": "March - May",
     "difficulty": "Easy",
     "categories": [
       "Mountains",
-      "Nature",
-      "Relaxation"
+      "Tea",
+      "Nature"
     ]
   },
   {
@@ -230,17 +230,17 @@ export const mockDestinations: Destination[] = [
     "rating": 4.9,
     "reviews": 3200,
     "recommendedDays": 3,
-    "dailyBudget": 1800,
+    "dailyBudget": 2000,
     "minimumBudget": 5000,
     "localTravelCost": 350,
     "image": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Wide_angle_of_Galigopuram_of_Virupaksha_Temple%2C_Hampi_%2804%29_%28cropped%29.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "An ancient village with numerous ruined temple complexes.",
-    "bestSeason": "October to February",
+    "bestSeason": "October - February",
     "difficulty": "Easy",
     "categories": [
       "Heritage",
       "History",
-      "Culture"
+      "Architecture"
     ]
   },
   {
@@ -252,17 +252,17 @@ export const mockDestinations: Destination[] = [
     "rating": 4.9,
     "reviews": 4500,
     "recommendedDays": 6,
-    "dailyBudget": 5000,
+    "dailyBudget": 3500,
     "minimumBudget": 20000,
     "localTravelCost": 1000,
     "image": "https://upload.wikimedia.org/wikipedia/commons/2/2f/The_Coral_Reef_at_the_Andaman_Islands.jpg?utm_source=en.wikipedia.org&utm_campaign=api&utm_content=original",
     "description": "Known for their palm-lined, white-sand beaches, mangroves and tropical rainforests.",
-    "bestSeason": "October to May",
+    "bestSeason": "October - May",
     "difficulty": "Easy",
     "categories": [
       "Beaches",
-      "Adventure",
-      "Relaxation"
+      "Diving",
+      "Island Adventure"
     ]
   }
 ];

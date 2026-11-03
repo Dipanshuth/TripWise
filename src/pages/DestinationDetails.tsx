@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Calendar, Wallet, Heart, ArrowLeft, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -9,6 +9,7 @@ import { mockPlaces } from '@/data/places';
 import { useTrips } from '@/context/TripContext';
 import { useToast } from '@/context/ToastContext';
 import { Modal } from '@/components/ui/Modal';
+import { getDestination } from '@/services/apiService';
 
 export function DestinationDetails() {
   const { slug } = useParams();
@@ -16,11 +17,35 @@ export function DestinationDetails() {
   const { trips, savedPlaces, toggleSavedPlace, addPlaceToTrip } = useTrips();
   const { toast } = useToast();
   
-  const dest = mockDestinations.find(d => d.slug === slug);
+  const [dest, setDest] = useState(mockDestinations.find(d => d.slug === slug));
   const places = mockPlaces.filter(p => p.destinationId === dest?.id);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDest = async () => {
+      const mockDest = mockDestinations.find(d => d.slug === slug);
+      if (mockDest) {
+        try {
+            // We use the ID to fetch full details
+            const data = await getDestination(mockDest.id.replace('d', ''));
+            if (data && data.id) {
+                setDest({
+                    ...mockDest,
+                    dailyBudget: data.daily_budget_typical || mockDest.dailyBudget,
+                    recommendedDays: data.recommended_duration ? parseInt(data.recommended_duration) || mockDest.recommendedDays : mockDest.recommendedDays,
+                    bestSeason: data.best_season || mockDest.bestSeason,
+                    categories: data.popular_for && data.popular_for.length > 0 ? data.popular_for : mockDest.categories
+                });
+            }
+        } catch (e) {
+            console.error("Using offline destination data", e);
+        }
+      }
+    };
+    fetchDest();
+  }, [slug]);
 
   if (!dest) {
     return <div className="pt-32 text-center text-xl">Destination not found</div>;
@@ -84,8 +109,8 @@ export function DestinationDetails() {
             {places.map(place => {
               const isSaved = savedPlaces.includes(place.id);
               return (
-                <Card key={place.id} className="group hover:shadow-float transition-all">
-                  <div className="relative h-48 overflow-hidden">
+                <Card key={place.id} className="group hover:shadow-float transition-all flex flex-col h-full">
+                  <div className="relative h-48 overflow-hidden shrink-0">
                     <img src={place.image} alt={place.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                     <div className="absolute top-3 left-3">
                       <Badge variant="default" className="bg-white/90 backdrop-blur-sm text-charcoal">{place.category}</Badge>
@@ -97,7 +122,7 @@ export function DestinationDetails() {
                       <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
                     </button>
                   </div>
-                  <CardContent className="flex flex-col h-[180px]">
+                  <CardContent className="flex flex-col flex-1">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-lg font-bold text-charcoal dark:text-white line-clamp-1">{place.name}</h3>
                       <div className="flex items-center text-sm font-bold text-charcoal dark:text-white shrink-0 ml-2">
@@ -105,8 +130,16 @@ export function DestinationDetails() {
                       </div>
                     </div>
                     <div className="space-y-2 text-sm text-muted dark:text-gray-400 mb-4 flex-1">
-                      <div className="flex items-center"><MapPin className="w-4 h-4 mr-2" /> {place.distance}</div>
-                      <div className="flex items-center"><Calendar className="w-4 h-4 mr-2" /> {place.recommendedTimeHours}h recommended</div>
+                      <div className="flex items-center"><MapPin className="w-4 h-4 mr-2" /> {place.distance ? `${place.distance} km` : ''} • {place.travel_time || `${place.recommendedTimeHours || 2}h`}</div>
+                      <div className="flex items-center">
+                        <Wallet className="w-4 h-4 mr-2" /> 
+                        Entry: {place.entry_fee_raw ? `₹${place.entry_fee_raw}` : (place.entry_fee == 0 || place.entryFee == 0 ? 'Free' : `₹${place.entry_fee || place.entryFee}`)}
+                      </div>
+                      {place.local_transport_mode && (
+                        <div className="flex items-center text-xs">
+                           Access: {place.local_transport_mode} ({place.transport_estimate_raw})
+                        </div>
+                      )}
                     </div>
                     <Button variant="outline" className="w-full mt-auto" onClick={() => openAddToTripModal(place.id)}>
                       <Plus className="w-4 h-4 mr-2" /> Add to Trip

@@ -5,12 +5,15 @@ import { cn } from '@/utils/cn';
 import { Button } from '../ui/Button';
 import { SearchModal } from '../ui/SearchModal';
 
+import { useAuth } from '@/context/AuthContext';
+
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   // If on home page, make navbar transparent initially
   const isHome = location.pathname === '/';
@@ -111,7 +114,11 @@ export function Navbar() {
               </Link>
             ))}
             <div className="flex space-x-4 pt-4">
-              <Button variant="outline" className="flex-1" onClick={() => navigate('/profile')}>Log in</Button>
+              {isAuthenticated ? (
+                  <Button variant="outline" className="flex-1" onClick={() => navigate('/profile')}>Profile</Button>
+              ) : (
+                  <Button variant="outline" className="flex-1" onClick={() => navigate('/login')}>Log in</Button>
+              )}
               <Button className="flex-1" onClick={() => navigate('/plan')}>Get Started</Button>
             </div>
           </div>
