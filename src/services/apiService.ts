@@ -1,8 +1,17 @@
-const configuredUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-// Force the hostname to match the browser's hostname to prevent Cross-Site cookie issues (SameSite=Lax)
-const urlObj = new URL(configuredUrl);
-urlObj.hostname = window.location.hostname;
-const API_BASE_URL = urlObj.toString().replace(/\/$/, '');
+const getApiBaseUrl = (): string => {
+    const envUrl = import.meta.env.VITE_API_BASE_URL;
+    if (typeof envUrl === 'string' && envUrl.trim() !== '') {
+        return envUrl.trim().replace(/\/$/, '');
+    }
+    // In production, default to same-origin proxy to prevent accidental localhost fallback
+    if (envUrl === '' || import.meta.env.PROD) {
+        return '';
+    }
+    // Local development fallback
+    return 'http://localhost:8000';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 function getCookie(name: string) {
     let cookieValue = null;
