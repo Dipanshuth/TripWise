@@ -62,7 +62,7 @@ export function MyTrips() {
               const data = await getDestination(destIdStr);
               newDests[destIdStr] = data;
               stateUpdated = true;
-            } catch (e) {
+            } catch {
               console.warn("Failed to load dest", destIdStr);
             }
           }
@@ -71,14 +71,14 @@ export function MyTrips() {
               const data = await getPlaces(destIdStr);
               newPlaces[destIdStr] = data.results || data;
               stateUpdated = true;
-            } catch (e) {}
+            } catch {}
           }
           if (!newAccs[destIdStr]) {
             try {
               const data = await getAccommodations(destIdStr);
               newAccs[destIdStr] = data.results || data;
               stateUpdated = true;
-            } catch (e) {}
+            } catch {}
           }
           
           const routeKey = `${(trip.source || '').trim().toLowerCase()}-${destIdStr}`;
@@ -93,7 +93,7 @@ export function MyTrips() {
                  };
                  stateUpdated = true;
               }
-            } catch (e) {}
+            } catch {}
           }
         }
       }

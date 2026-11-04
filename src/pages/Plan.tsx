@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, MapPin, Search, Calendar, Users, Briefcase, AlertTriangle } from 'lucide-react';
+import { ChevronRight, ChevronLeft, MapPin, Search, Users, Briefcase, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';

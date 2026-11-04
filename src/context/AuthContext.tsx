@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (data.authenticated && data.user) {
           setCurrentUser(data.user);
         }
-      } catch (error) {
+      } catch {
         console.error('Not authenticated');
       } finally {
         setLoading(false);

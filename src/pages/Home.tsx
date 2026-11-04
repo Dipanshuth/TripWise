@@ -1,9 +1,7 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
-import { Input } from '@/components/ui/Input';
-import { MapPin, Calendar, Users, Briefcase, Search, Heart, Clock } from 'lucide-react';
+import { MapPin, Calendar, Users, Search, Heart, Clock } from 'lucide-react';
 import { mockDestinations } from '@/data/destinations';
 import { Reveal } from '@/components/ui/Reveal';
 

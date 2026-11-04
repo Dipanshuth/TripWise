@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { MapPin, Wifi, Car, Coffee, Utensils, Mountain } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';

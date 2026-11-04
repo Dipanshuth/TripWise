@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, MapPin } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { mockDestinations } from '@/data/destinations';
 import { mockPlaces } from '@/data/places';

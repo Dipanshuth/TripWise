@@ -18,7 +18,6 @@ export function Explore() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [destinations, setDestinations] = useState(mockDestinations);
-  const [isLoading, setIsLoading] = useState(false);
   
   const { savedPlaces, toggleSavedPlace } = useTrips();
   const { toast } = useToast();
@@ -26,7 +25,6 @@ export function Explore() {
   useEffect(() => {
     const fetchDests = async () => {
       try {
-        setIsLoading(true);
         const data = await getDestinations();
         if (data.results && data.results.length > 0) {
             // Map backend fields to frontend interface where necessary to avoid breaking UI
@@ -46,8 +44,6 @@ export function Explore() {
         }
       } catch (err) {
         console.error("Using fallback mock destinations.", err);
-      } finally {
-        setIsLoading(false);
       }
     };
     fetchDests();

@@ -1,8 +1,7 @@
-import { Trip, Place, User } from '../types';
+import { Trip, User } from '../types';
 
 const TRIPS_KEY = 'tripwise_trips';
 const SAVED_PLACES_KEY = 'tripwise_saved_places';
-const USER_PREF_KEY = 'tripwise_preferences';
 
 export const storageService = {
   getTrips: (): Trip[] => {

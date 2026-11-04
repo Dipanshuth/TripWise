@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Trip, Expense, Discount } from '../types';
 import { storageService } from '../services/storageService';
 import { regenerateItinerary } from '../utils/itineraryHelper';
-import { mockPlaces } from '../data/places';
 
 interface TripContextType {
   trips: Trip[];

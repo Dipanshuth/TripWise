@@ -18,7 +18,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [destResults, setDestResults] = useState<any[]>([]);
   const [placeResults, setPlaceResults] = useState<any[]>([]);
   const [accResults, setAccResults] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,7 +40,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   useEffect(() => {
     const fetchResults = async () => {
-      setIsLoading(true);
       try {
         const [dests, places, accs] = await Promise.all([
           searchDestinations(debouncedQuery),
@@ -53,8 +51,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         setAccResults(accs.results || []);
       } catch (err) {
         console.error('Search failed', err);
-      } finally {
-        setIsLoading(false);
       }
     };
     if (isOpen) {

@@ -174,7 +174,6 @@ export const budgetService = {
 
     // Also include any standalone activities in itinerary that are not place-based
     if (trip.itinerary && trip.itinerary.length > 0) {
-      const placesStr = placesList.map(String);
       trip.itinerary.forEach(day => {
         day.activities.forEach(act => {
           if (!act.placeId && Number(act.cost) > 0) {
