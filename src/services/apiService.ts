@@ -1,11 +1,15 @@
-const getApiBaseUrl = (): string => {
+export const getApiBaseUrl = (): string => {
+    // In production, always default to same-origin proxy to route through Vercel rewrites
+    // and prevent accidental localhost fallback from .env
+    if (import.meta.env.PROD) {
+        return '';
+    }
     const envUrl = import.meta.env.VITE_API_BASE_URL;
+    if (envUrl === '') {
+        return '';
+    }
     if (typeof envUrl === 'string' && envUrl.trim() !== '') {
         return envUrl.trim().replace(/\/$/, '');
-    }
-    // In production, default to same-origin proxy to prevent accidental localhost fallback
-    if (envUrl === '' || import.meta.env.PROD) {
-        return '';
     }
     // Local development fallback
     return 'http://localhost:8000';
@@ -120,18 +124,103 @@ export const updateProfile = async (data: any) => {
 // --- EXISTING ENDPOINTS ---
 export interface HealthResponse {
     status: string;
-    service: string;
-    phase: string;
+    database?: string;
+    service?: string;
+    phase?: string;
+    [key: string]: any;
 }
 
-export const checkBackendHealth = async (): Promise<HealthResponse> => {
-    try {
-        const response = await apiFetch('/api/health/');
-        return await response.json();
-    } catch (error) {
-        console.error("Could not connect to backend:", error);
-        throw error;
+export interface HealthCheckOptions {
+    timeoutMs?: number;
+    signal?: AbortSignal;
+    forceRefresh?: boolean;
+}
+
+let inFlightHealthCheck: Promise<HealthResponse> | null = null;
+let lastHealthCheckResult: { data: HealthResponse; timestamp: number } | null = null;
+const HEALTH_CACHE_TTL_MS = 30000; // Cache valid response for 30 seconds to prevent unnecessary repeated requests
+
+export const checkBackendHealth = async (options: HealthCheckOptions = {}): Promise<HealthResponse> => {
+    const { timeoutMs = 8000, signal, forceRefresh = false } = options;
+
+    if (signal?.aborted) {
+        throw new DOMException('Aborted', 'AbortError');
     }
+
+    // Return cached response if within TTL and not forcing refresh
+    if (!forceRefresh && lastHealthCheckResult) {
+        const age = Date.now() - lastHealthCheckResult.timestamp;
+        if (age < HEALTH_CACHE_TTL_MS) {
+            return lastHealthCheckResult.data;
+        }
+    }
+
+    // Reuse existing in-flight request if one is currently pending
+    let pendingPromise = inFlightHealthCheck;
+    if (forceRefresh || !pendingPromise) {
+        const executeCheck = async (): Promise<HealthResponse> => {
+            const controller = new AbortController();
+            let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
+
+            if (timeoutMs > 0) {
+                timeoutTimer = setTimeout(() => {
+                    controller.abort(new Error(`Health check timed out after ${timeoutMs}ms`));
+                }, timeoutMs);
+            }
+
+            try {
+                const response = await apiFetch('/api/health/', {
+                    signal: controller.signal,
+                });
+                const data: HealthResponse = await response.json();
+
+                // Only cache healthy responses
+                if (data && data.status === 'ok' && data.database === 'connected') {
+                    lastHealthCheckResult = { data, timestamp: Date.now() };
+                } else {
+                    lastHealthCheckResult = null;
+                }
+
+                return data;
+            } catch (error) {
+                lastHealthCheckResult = null;
+                console.error("Could not connect to backend:", error);
+                throw error;
+            } finally {
+                if (timeoutTimer) {
+                    clearTimeout(timeoutTimer);
+                }
+            }
+        };
+
+        pendingPromise = executeCheck().finally(() => {
+            inFlightHealthCheck = null;
+        });
+        inFlightHealthCheck = pendingPromise;
+    }
+
+    if (!signal) {
+        return pendingPromise;
+    }
+
+    // If caller provided an abort signal, reject if caller aborts without canceling the shared fetch
+    return new Promise<HealthResponse>((resolve, reject) => {
+        const onAbort = () => {
+            signal.removeEventListener('abort', onAbort);
+            reject(new DOMException('Aborted', 'AbortError'));
+        };
+        signal.addEventListener('abort', onAbort);
+
+        pendingPromise!
+            .then((res) => {
+                signal.removeEventListener('abort', onAbort);
+                resolve(res);
+            })
+            .catch((err) => {
+                signal.removeEventListener('abort', onAbort);
+                reject(err);
+            });
+    });
 };
 
 export const getDestinations = async () => {
