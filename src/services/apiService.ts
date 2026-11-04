@@ -1,9 +1,14 @@
 export const getApiBaseUrl = (): string => {
-    // In production, always default to same-origin proxy to route through Vercel rewrites
-    // and prevent accidental localhost fallback from .env
+    // 1. In production builds or on any deployed/remote hostname,
+    // ALWAYS use the same-origin Vercel rewrite proxy ('')
     if (import.meta.env.PROD) {
         return '';
     }
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        return '';
+    }
+
+    // 2. Local development fallback
     const envUrl = import.meta.env.VITE_API_BASE_URL;
     if (envUrl === '') {
         return '';
@@ -11,7 +16,6 @@ export const getApiBaseUrl = (): string => {
     if (typeof envUrl === 'string' && envUrl.trim() !== '') {
         return envUrl.trim().replace(/\/$/, '');
     }
-    // Local development fallback
     return 'http://localhost:8000';
 };
 
@@ -70,7 +74,7 @@ const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
                         errorMsg = String(err.errors);
                     }
                 }
-            } catch(e) {
+            } catch {
                 // If it's HTML (like 403 CSRF page), just show status
                 errorMsg = `Error ${response.status}: ${response.statusText}`;
             }
@@ -136,12 +140,19 @@ export interface HealthCheckOptions {
     forceRefresh?: boolean;
 }
 
+export const isBackendHealthy = (data: any): boolean => {
+    if (!data || typeof data !== 'object') return false;
+    const status = String(data.status || '').trim().toLowerCase();
+    const database = String(data.database || '').trim().toLowerCase();
+    return status === 'ok' && database === 'connected';
+};
+
 let inFlightHealthCheck: Promise<HealthResponse> | null = null;
 let lastHealthCheckResult: { data: HealthResponse; timestamp: number } | null = null;
 const HEALTH_CACHE_TTL_MS = 30000; // Cache valid response for 30 seconds to prevent unnecessary repeated requests
 
 export const checkBackendHealth = async (options: HealthCheckOptions = {}): Promise<HealthResponse> => {
-    const { timeoutMs = 8000, signal, forceRefresh = false } = options;
+    const { timeoutMs = 30000, signal, forceRefresh = false } = options;
 
     if (signal?.aborted) {
         throw new DOMException('Aborted', 'AbortError');
@@ -175,7 +186,7 @@ export const checkBackendHealth = async (options: HealthCheckOptions = {}): Prom
                 const data: HealthResponse = await response.json();
 
                 // Only cache healthy responses
-                if (data && data.status === 'ok' && data.database === 'connected') {
+                if (isBackendHealthy(data)) {
                     lastHealthCheckResult = { data, timestamp: Date.now() };
                 } else {
                     lastHealthCheckResult = null;
