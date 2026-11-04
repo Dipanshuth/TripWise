@@ -173,6 +173,18 @@ export const checkBackendHealth = async (options: HealthCheckOptions = {}): Prom
             const controller = new AbortController();
             let timeoutTimer: ReturnType<typeof setTimeout> | undefined;
 
+            const onCallerAbort = () => {
+                controller.abort(signal?.reason || new DOMException('Aborted', 'AbortError'));
+            };
+
+            if (signal) {
+                if (signal.aborted) {
+                    onCallerAbort();
+                } else {
+                    signal.addEventListener('abort', onCallerAbort, { once: true });
+                }
+            }
+
             if (timeoutMs > 0) {
                 timeoutTimer = setTimeout(() => {
                     controller.abort(new Error(`Health check timed out after ${timeoutMs}ms`));
@@ -200,6 +212,9 @@ export const checkBackendHealth = async (options: HealthCheckOptions = {}): Prom
             } finally {
                 if (timeoutTimer) {
                     clearTimeout(timeoutTimer);
+                }
+                if (signal) {
+                    signal.removeEventListener('abort', onCallerAbort);
                 }
             }
         };
